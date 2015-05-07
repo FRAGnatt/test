@@ -220,28 +220,31 @@ define(["collection/instrument","collection/track","models/sound-map","template/
                     var wave = val.get("sector_list")[0].wave;
                     _.each(wave,function(v,k){
                         if(v.sound){
-                            if (!sound_element[k*8]){
-                                sound_element[k*8] = []
+                            if (!sound_element[k]){
+                                sound_element[k] = []
                             }
-                            sound_element[k*8].push(soundMap.get(v.sound))
+                            sound_element[k].push(soundMap.get(v.sound))
                         }
                     })
                 });
                 flag = true;
                 var speed = (((800/4 * (bpm / 60))/1000)*tickTime);
-                log(speed);
                 var start = Date.now();
                 var time = 0;
+                var exit = 0;
+                var num = 0;
+                var diff = 0;
                 var instance = function () {
                     linePosition = ( linePosition + speed ) % 800;
                     $play.css({"left": linePosition + 92});
-                    for (var num = Math.floor((linePosition - speed)/8)*8; num < linePosition; num +=8) {
+                    exit = ~~(linePosition/8);
+                    for (num = ~~((linePosition - speed)/8); num < exit; num +=1) {
                         _.each(sound_element[num], function (v, k) {
                             v.play();
                         })
                     }
                     time += tickTime;
-                    var diff = (Date.now() - start) - time;
+                    diff = (Date.now() - start) - time;
                     if (flag) {
                         setTimeout(instance, (tickTime - diff));
                     }
