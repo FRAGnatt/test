@@ -65,29 +65,29 @@ define(["collection/instrument","collection/track","models/sound-map","template/
             this.trackCollection = new TrackCollection();
             var wave = [];
 
-            for (var i = 0; i < 100; i++){
-                if (i % 3 == 0){
-                    wave.push({
-                        val: "hi",
-                        sound: "agogo-hi"
-                    });
-                } else {
-                    wave.push({
-                        val: "empty",
-                        sound: false
-                    });
-                }
-            }
+            // for (var i = 0; i < 100; i++){
+            //     if (i % 3 == 0){
+            //         wave.push({
+            //             val: "hi",
+            //             sound: "agogo-hi"
+            //         });
+            //     } else {
+            //         wave.push({
+            //             val: "empty",
+            //             sound: false
+            //         });
+            //     }
+            // }
 
 
-            this.trackCollection.add({
-                instrument: this.instrumentCollection.where({name:"agogo"})[0],
-                sector_list: [
-                    {
-                        wave: wave
-                    }
-                ]
-            });
+            // this.trackCollection.add({
+            //     instrument: this.instrumentCollection.where({name:"agogo"})[0],
+            //     sector_list: [
+            //         {
+            //             wave: wave
+            //         }
+            //     ]
+            // });
             var wave = [];
             for (var i = 0; i < 100; i++){
                 if (i % 25 == 0){
@@ -112,27 +112,27 @@ define(["collection/instrument","collection/track","models/sound-map","template/
             });
 
             var wave = [];
-            for (var i = 0; i < 100; i++){
-                if (i % 3 == 1){
-                    wave.push({
-                        val: "hi",
-                        sound: "djembe-hi"
-                    });
-                } else {
-                    wave.push({
-                        val: "empty",
-                        sound: false
-                    });
-                }
-            }
-            this.trackCollection.add({
-                instrument: this.instrumentCollection.where({name:"djembe"})[0],
-                sector_list: [
-                    {
-                        wave: wave
-                    }
-                ]
-            });
+            // for (var i = 0; i < 100; i++){
+            //     if (i % 3 == 1){
+            //         wave.push({
+            //             val: "hi",
+            //             sound: "djembe-hi"
+            //         });
+            //     } else {
+            //         wave.push({
+            //             val: "empty",
+            //             sound: false
+            //         });
+            //     }
+            // }
+            // this.trackCollection.add({
+            //     instrument: this.instrumentCollection.where({name:"djembe"})[0],
+            //     sector_list: [
+            //         {
+            //             wave: wave
+            //         }
+            //     ]
+            // });
         },
         render: function(){
             $(".left-col").html(Templates["views/handlebars/instrument_list.handlebars"]({
