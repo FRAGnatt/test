@@ -12,8 +12,9 @@ define(["collection/instrument","collection/track","models/sound-map","template/
             //"keydown": "play"
         },
         initialize : function(options) {
-            _.bindAll(this, "play");
-            $(document).bind('keydown', this.play); // todo Hack space key to play music
+
+            $(document).bind('keydown', this._onKeyDown.bind(this)); // todo Hack space key to play music
+
             this.soundMap = new SoundMap();
             this.instrumentCollection = new InstrumentCollection();
             this.instrumentCollection.add({
@@ -204,53 +205,67 @@ define(["collection/instrument","collection/track","models/sound-map","template/
             this.trackCollection.bpm = $(el.currentTarget).val()
         },
 
-        play: function(el){
-            var code = el.keyCode || el.which;
-            if(code == 32){
-                el.preventDefault();
-                var flag = false;
-                var linePosition = 0;
-                var tickTime = 10;
-                var $play = $(".play");
-                var bpm = this.trackCollection.bpm;
-                var sound_element = {};
-                var soundMap = this.soundMap;
-
-                _.each(this.trackCollection.models,function(val,key){
-                    var wave = val.get("sector_list")[0].wave;
-                    _.each(wave,function(v,k){
-                        if(v.sound){
-                            if (!sound_element[k]){
-                                sound_element[k] = []
-                            }
-                            sound_element[k].push(soundMap.get(v.sound))
-                        }
-                    })
-                });
-                flag = true;
-                var speed = (((800/4 * (bpm / 60))/1000)*tickTime);
-                var start = Date.now();
-                var time = 0;
-                var exit = 0;
-                var num = 0;
-                var diff = 0;
-                var instance = function () {
-                    linePosition = ( linePosition + speed ) % 800;
-                    $play.css({"left": linePosition + 92});
-                    exit = ~~(linePosition/8);
-                    for (num = ~~((linePosition - speed)/8); num < exit; num +=1) {
-                        _.each(sound_element[num], function (v, k) {
-                            v.play();
-                        })
-                    }
-                    time += tickTime;
-                    diff = (Date.now() - start) - time;
-                    if (flag) {
-                        setTimeout(instance, (tickTime - diff));
-                    }
-                };
-                setTimeout(instance, tickTime);
+        _onKeyDown: function (event) {
+            if (event.which == 32) {
+                event.preventDefault();
+                this.play();
+            } else {
+                this.stop();
             }
+        },
+
+        stop: function () {
+            if (this.instanceId) {
+                clearTimeout(this.instanceId);
+            }
+        },
+
+        play: function() {
+
+            var flag = false;
+            var linePosition = 0;
+            var tickTime = 10;
+            var $play = $(".play");
+            var bpm = this.trackCollection.bpm;
+            var sound_element = {};
+            var soundMap = this.soundMap;
+
+            //TODO: Многие модели лишние, можно оптимальнее
+            this.trackCollection.each(function (model) {
+                var wave = model.get("sector_list")[0].wave;
+                wave.forEach(function (stepData, stepNum) {
+                    // sound_element[stepNum] = sound_element[stepNum] || [];
+                    // TODO Оставим на будущее реализацию нескольких звуков
+                    // stepData.sound && sound_element[stepNum].push(this.soundMap.get(stepData.sound))
+                    stepData.sound && (sound_element[stepNum] = this.soundMap.get(stepData.sound));
+                }, this);
+            }, this);
+
+            flag = true;
+            var speed = (((800/4 * (bpm / 60))/1000)*tickTime);
+
+            var start = Date.now();
+            var time = 0;
+            var exit = 0;
+            var num = 0;
+            var diff = 0;
+            var instance = function () {
+                linePosition = ( linePosition + speed ) % 800;
+                $play.css({"left": linePosition + 92});
+                exit = ~~(linePosition/8);
+                for (num = ~~((linePosition - speed)/8); num < exit; num +=1) {
+                    sound_element[num] && sound_element[num].play();
+                }
+                time += tickTime;
+                diff = (Date.now() - start) - time;
+
+                this.instanceId = setTimeout(instance, (tickTime - diff));
+
+            }.bind(this);
+
+            clearTimeout(this.instanceId);
+            this.instanceId = setTimeout(instance, tickTime);
+
         }
     }))();
 });
