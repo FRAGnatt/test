@@ -146,6 +146,8 @@ define(["collection/instrument","collection/track","models/sound-map","template/
             $(".work-tabs-wrapper").html(Templates["views/handlebars/work_tabs_list.handlebars"]({
                 track_list: this.trackCollection.toJSON()
             }));
+
+            this.$play = $('.play');
         },
 
         chooseInstrument: function(el){
@@ -205,6 +207,10 @@ define(["collection/instrument","collection/track","models/sound-map","template/
             this.trackCollection.bpm = $(el.currentTarget).val()
         },
 
+        renderLine: function (linePosition) {
+            this.$play.css({"transform": 'translateX('+ (linePosition) + 'px)'});
+        },
+
         _onKeyDown: function (event) {
             if (event.which == 32) {
                 event.preventDefault();
@@ -222,10 +228,9 @@ define(["collection/instrument","collection/track","models/sound-map","template/
 
         play: function() {
 
-            var flag = false;
             var linePosition = 0;
             var tickTime = 10;
-            var $play = $(".play");
+
             var bpm = this.trackCollection.bpm;
             var sound_element = {};
             var soundMap = this.soundMap;
@@ -251,11 +256,14 @@ define(["collection/instrument","collection/track","models/sound-map","template/
             var diff = 0;
             var instance = function () {
                 linePosition = ( linePosition + speed ) % 800;
-                $play.css({"left": linePosition + 92});
+                this.renderLine(linePosition);
+
                 exit = ~~(linePosition/8);
+
                 for (num = ~~((linePosition - speed)/8); num < exit; num +=1) {
                     sound_element[num] && sound_element[num].play();
                 }
+
                 time += tickTime;
                 diff = (Date.now() - start) - time;
 
