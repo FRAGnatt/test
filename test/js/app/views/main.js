@@ -12,8 +12,11 @@ define(["collection/instrument","collection/track","models/sound-map","template/
             //"keydown": "play"
         },
         initialize : function(options) {
-            _.bindAll(this, "play");
-            $(document).bind('keydown', this.play); // todo Hack space key to play music
+
+            this.instanceId = 0;
+
+            $(document).bind('keydown', this._onKeyDown.bind(this)); // todo Hack space key to play music
+
             this.soundMap = new SoundMap();
             this.instrumentCollection = new InstrumentCollection();
             this.instrumentCollection.add({
@@ -134,6 +137,15 @@ define(["collection/instrument","collection/track","models/sound-map","template/
             //     ]
             // });
         },
+        _onKeyDown: function (event) {
+            if (event.which == 32)  { // Space key
+                event.preventDefault();
+                this.play();
+            } else {
+                this.stop();
+            }
+        },
+
         render: function(){
             $(".left-col").html(Templates["views/handlebars/instrument_list.handlebars"]({
                 instrumental_list: this.instrumentCollection.toJSON()
@@ -145,6 +157,11 @@ define(["collection/instrument","collection/track","models/sound-map","template/
             $(".work-tabs-wrapper").html(Templates["views/handlebars/work_tabs_list.handlebars"]({
                 track_list: this.trackCollection.toJSON()
             }));
+            this.$play = $('.play')
+        },
+
+        renderLine: function (linePosition) {
+            this.$play.css({"transform": 'translateX('+ (linePosition) + 'px)'});
         },
 
         chooseInstrument: function(el){
@@ -204,53 +221,65 @@ define(["collection/instrument","collection/track","models/sound-map","template/
             this.trackCollection.bpm = $(el.currentTarget).val()
         },
 
-        play: function(el){
-            var code = el.keyCode || el.which;
-            if(code == 32){
-                el.preventDefault();
-                var flag = false;
-                var linePosition = 0;
-                var tickTime = 10;
-                var $play = $(".play");
-                var bpm = this.trackCollection.bpm;
-                var sound_element = {};
-                var soundMap = this.soundMap;
-
-                _.each(this.trackCollection.models,function(val,key){
-                    var wave = val.get("sector_list")[0].wave;
-                    _.each(wave,function(v,k){
-                        if(v.sound){
-                            if (!sound_element[k]){
-                                sound_element[k] = []
-                            }
-                            sound_element[k].push(soundMap.get(v.sound))
-                        }
-                    })
-                });
-                flag = true;
-                var speed = (((800/4 * (bpm / 60))/1000)*tickTime);
-                var start = Date.now();
-                var time = 0;
-                var exit = 0;
-                var num = 0;
-                var diff = 0;
-                var instance = function () {
-                    linePosition = ( linePosition + speed ) % 800;
-                    $play.css({"left": linePosition + 92});
-                    exit = ~~(linePosition/8);
-                    for (num = ~~((linePosition - speed)/8); num < exit; num +=1) {
-                        _.each(sound_element[num], function (v, k) {
-                            v.play();
-                        })
-                    }
-                    time += tickTime;
-                    diff = (Date.now() - start) - time;
-                    if (flag) {
-                        setTimeout(instance, (tickTime - diff));
-                    }
-                };
-                setTimeout(instance, tickTime);
+        stop: function () {
+            if (this.instanceId) {
+                clearTimeout(this.instanceId);
             }
+        },
+
+        play: function(el){
+
+            var linePosition = 0;
+            var tickTime = 10;
+
+            var bpm = this.trackCollection.bpm;
+            var sound_element = {};
+            var soundMap = this.soundMap;
+
+            _.each(this.trackCollection.models,function(val,key){
+                var wave = val.get("sector_list")[0].wave;
+                _.each(wave,function(v,k){
+                    if(v.sound){
+                        if (!sound_element[k]){
+                            sound_element[k] = []
+                        }
+                        sound_element[k].push(soundMap.get(v.sound))
+                    }
+                })
+            });
+
+            var speed = (((800/4 * (bpm / 60))/1000)*tickTime);
+
+            var start = Date.now();
+
+            var time = 0;
+            var exit = 0;
+            var num = 0;
+            var diff = 0;
+
+            var self = this;
+
+            var instance = function () {
+
+                linePosition = ( linePosition + speed ) % 800;
+                self.renderLine(linePosition);
+                exit = ~~(linePosition/8);
+
+                for (num = ~~((linePosition - speed) / 8); num < exit; num +=1) {
+                    _.each(sound_element[num], function (v, k) {
+                        v.play();
+                    })
+                }
+
+                time += tickTime;
+                diff = (Date.now() - start) - time;
+
+                self.instanceId = setTimeout(instance, (tickTime - diff));
+
+            };
+
+            clearTimeout(this.instanceId);
+            setTimeout(instance, tickTime);
         }
     }))();
 });
