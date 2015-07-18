@@ -1,6 +1,7 @@
 test
 
 To start:
-npm install
 
-./node_modules/bem/bin/bem server
+sudo npm install -g bem-cli
+
+npm install && bem server
