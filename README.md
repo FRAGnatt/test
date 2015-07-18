@@ -1,4 +1,5 @@
 test
 
 To start:
-npm install && bem server
+npm install
+./node_modules/bem/bin/bem server
