@@ -147,17 +147,22 @@ define(["collection/instrument","collection/track","models/sound-map","template/
         },
 
         render: function(){
+
             $(".left-col").html(Templates["views/handlebars/instrument_list.handlebars"]({
                 instrumental_list: this.instrumentCollection.toJSON()
             }));
+
             $(".work-menu").html(Templates["views/handlebars/sound_list.handlebars"]({
                 instrument: this.instrumentCollection.where({active:true})[0].toJSON(),
                 bpm: this.trackCollection.bpm
             }));
+
             $(".work-tabs-wrapper").html(Templates["views/handlebars/work_tabs_list.handlebars"]({
                 track_list: this.trackCollection.toJSON()
             }));
+
             this.$play = $('.play')
+
         },
 
         renderLine: function (linePosition) {
@@ -179,12 +184,14 @@ define(["collection/instrument","collection/track","models/sound-map","template/
 
         createTrack: function(el){
             var wave = [];
-            for (var i = 0; i < 100; i++){
+
+            for (var i = 0; i < 100; i++) {
                 wave.push({
                     val: "empty",
                     sound: false
                 });
             }
+
             this.trackCollection.add({
                 instrument: this.instrumentCollection.where({active:true})[0],
                 sector_list: [
@@ -193,6 +200,7 @@ define(["collection/instrument","collection/track","models/sound-map","template/
                     }
                 ]
             });
+
             this.render();
         },
 
@@ -236,17 +244,19 @@ define(["collection/instrument","collection/track","models/sound-map","template/
             var sound_element = {};
             var soundMap = this.soundMap;
 
-            _.each(this.trackCollection.models,function(val,key){
+            _.each(this.trackCollection.models, function(val,key) {
                 var wave = val.get("sector_list")[0].wave;
-                _.each(wave,function(v,k){
-                    if(v.sound){
-                        if (!sound_element[k]){
-                            sound_element[k] = []
+                _.each(wave, function(sound,segment) {
+                    //sound.sound Хранит в себе название звука
+                    if (sound.sound) {
+                        if (!sound_element[segment]) {
+                            sound_element[segment] = []
                         }
-                        sound_element[k].push(soundMap.get(v.sound))
+                        sound_element[segment].push(soundMap.get(sound.sound))
                     }
                 })
             });
+
 
             var speed = (((800/4 * (bpm / 60))/1000)*tickTime);
 
